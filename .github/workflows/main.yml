@@ -26,7 +26,7 @@ jobs:
 
       - name: Clone ReVanced Patches
         run: |
-          git clone --depth 1 https://github.com/ReVanced/revanced-patches.git revanced-patches
+          git clone --depth 1 https://gitlab.com/ReVanced/revanced-patches.git revanced-patches
 
       - name: Integrate MiniGms
         run: |
