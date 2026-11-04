@@ -1,0 +1,60 @@
+
+name: Build MiniGms RVP
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK
+        run: |
+          sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Clone ReVanced Patches
+        run: |
+          git clone --depth 1 https://gitlab.com/revanced/revanced-patches.git revanced-patches
+
+      - name: Integrate MiniGms
+        run: |
+          unzip -o minigms-stage5.zip -d revanced-patches
+
+      - name: Configure credentials
+        env:
+          GH_USER: ${{ secrets.GH_PACKAGES_USERNAME }}
+          GH_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
+        run: |
+          test -n "$GH_USER"
+          test -n "$GH_TOKEN"
+          mkdir -p ~/.gradle
+          echo "githubPackagesUsername=$GH_USER" >> ~/.gradle/gradle.properties
+          echo "githubPackagesPassword=$GH_TOKEN" >> ~/.gradle/gradle.properties
+
+      - name: Build MiniGms
+        run: |
+          cd revanced-patches
+          ./gradlew :patches:buildAndroid --no-daemon
+
+      - name: Locate RVP
+        id: locate
+        run: |
+          FILE=$(find revanced-patches -name "*.rvp" -type f | head -1)
+          test -n "$FILE"
+          echo "file=$FILE" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MiniGms-RVP
+          path: ${{ steps.locate.outputs.file }}
+          
