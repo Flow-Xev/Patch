@@ -28,6 +28,15 @@ jobs:
         run: |
           git clone --depth 1 https://gitlab.com/ReVanced/revanced-patches.git revanced-patches
 
+      - name: Inspect patcher API usage
+        run: |
+          cd revanced-patches
+          echo "== how existing patches get mutable classes =="
+          grep -rnE "mutableClass|classDefBy|classBy|proxy\(" patches/src/main/kotlin | head -20
+          echo "== patcher imports in use =="
+          grep -rhE "^import app\.revanced\.patcher\.[a-z]" patches/src/main/kotlin \
+            | sort | uniq -c | sort -rn | head -30
+
       - name: Integrate MiniGms
         run: |
           unzip -o minigms-stage5.zip -d revanced-patches
